@@ -3,7 +3,7 @@ clc; clear variables; close all;
 import casadi.*
 
 %% Initialization
-duration = 2/3;                 % [AT] duration of space travel
+duration = 1/3;                 % [AT] duration of space travel
 delta_t = 0.005;                % [AT] discretization times
 h = delta_t;                    % Time step in RK4 integrator
 N = floor(duration/delta_t);    % number of iterations
@@ -167,7 +167,8 @@ end
 
 %% Create plots.
 close all;
-% Plot trajectory of moon
+
+% Trajectory plots set up
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.04, 1, 0.96]);
 subplot(3,2,[1,3]);
 title('Position of shuttle and moon','Interpreter','latex');
@@ -176,20 +177,26 @@ ylabel('$p_y [AU]$','Interpreter','latex')
 axis([-1.2 1.2 -1.2 1.2]);
 hold on;
 viscircles([0,0],6378000/AU, 'Color','b');
-%alpha_factor = 0.8/10;
+
+% Plot trajectory of moon, initial guess, homotopy path and optimal path
 for i=1:N
     plot(p_M(1,i), p_M(2,i), 'ob');
     plot(sol_all_mat(3,i,1), sol_all_mat(4,i,1), '+y');
     for j=2:(size(sol_all_mat,3)-1)
-        plt = plot(sol_all_mat(3,i,j), sol_all_mat(4,i,j), '+g');  % the different optimizations
-        %plt.Color(4) = 1-(0.2+(alpha_factor*j));
+        % homotopy solutions
+        plt = plot(sol_all_mat(3,i,j), sol_all_mat(4,i,j), '+g');
     end
-    plot(sol_all_mat(3,i,end), sol_all_mat(4,i,end), 'or')  % final solution
-%     plot(w_initial_opt_mat(3,i), w_initial_opt_mat(4,i), '+g');
-%     plot(w_opt_mat(3,i), w_opt_mat(4,i), 'or');
+    % final solution
+    plot(sol_all_mat(3,i,end), sol_all_mat(4,i,end), 'or')
+    
+    % Control direction
+    if (i < N)
+        quiver(sol_all_mat(3,i,end), sol_all_mat(4,i,end), sol_all_mat(1,i,end)/100, sol_all_mat(2,i,end)/100);
+    end
     pause(0.1)
 end
 
+% Control subplots
 subplot(3,2,2);
 hold on;
 title('Control of shuttle x-direction','Interpreter','latex');
@@ -198,15 +205,13 @@ ylabel('$acceleration [\frac{m}{s^2}]$','Interpreter','latex');
 stairs([0:N-1], sol_all_mat(1,:,end)/a_correct)
 
 subplot(3,2,4);
-
 hold on;
 title('Control of shuttle y-direction','Interpreter','latex');
 xlabel('N');
 ylabel('$acceleration [\frac{m}{s^2}]$','Interpreter','latex');
 stairs([0:N-1], sol_all_mat(2,:,end)/a_correct)
 
-norm(w_opt(end-2:end))  %final velocity
-
+% Velocity subplots
 subplot(3,2,5);
 hold on;
 title('Velocity of shuttle x-direction','Interpreter','latex');
@@ -214,11 +219,9 @@ xlabel('N');
 ylabel('$velocity [\frac{m}{s}]$','Interpreter','latex');
 plot([0:N-1], sol_all_mat(5,:,end)/v_correct)
 
-
 subplot(3,2,6);
 hold on;
 title('Velocity of shuttle y-direction','Interpreter','latex');
 xlabel('N')
 ylabel('$velocity [\frac{m}{s}]$','Interpreter','latex')
 plot([0:N-1], sol_all_mat(6,:,end)/v_correct)
-time_opti
